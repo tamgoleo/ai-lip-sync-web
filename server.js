@@ -25,18 +25,30 @@ app.post('/generate-video', upload.single('image'), async (req, res) => {
             return res.status(400).json({ success: false, error: 'Thiếu thông tin!' });
         }
 
+        // --- BƯỚC GIẢI QUYẾT LỖI 422 ---
+        // Đọc file ảnh và biến nó thành chuỗi ký tự (Base64 String) cho AI dễ hiểu
+        const imageAsBase64 = fs.readFileSync(imageFile.path, 'base64');
+        const mimeType = imageFile.mimetype;
+        const sourceImageString = `data:${mimeType};base64,${imageAsBase64}`;
+        // -------------------------------
+
         const audioUrl = googleTTS.getAudioUrl(textToSpeak, { lang: 'vi', slow: false, host: 'https://translate.google.com' });
 
         const output = await replicate.run(
             "cjwbw/sadtalker:a519cc0cfebaaeade068b23899165a11ec76aaa1d2b313d40d214f204ec957a3",
             {
                 input: {
-                    source_image: fs.createReadStream(imageFile.path),
+                    source_image: sourceImageString, // Đã thay bằng chuỗi String
                     driven_audio: audioUrl,
                     enhancer: "gfpgan"
                 }
             }
         );
+
+        // Xóa file ảnh tạm trong thư mục uploads sau khi AI tạo xong (giữ máy chủ sạch sẽ)
+        if (fs.existsSync(imageFile.path)) {
+            fs.unlinkSync(imageFile.path);
+        }
 
         res.json({ success: true, videoUrl: output });
     } catch (error) {
