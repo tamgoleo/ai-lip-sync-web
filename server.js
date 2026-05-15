@@ -28,7 +28,7 @@ app.post('/generate-video', upload.single('image'), async (req, res) => {
         const audioUrl = googleTTS.getAudioUrl(textToSpeak, { lang: 'vi', slow: false, host: 'https://translate.google.com' });
 
         const output = await replicate.run(
-            "cjwbw/sadtalker:3aa3dac9353cc4d6bd62a8f95957cb844066926eefdc9caa28acd6428fa8ef1",
+            "cjwbw/sadtalker:a519cc0cfebaaeade068b23899165a11ec76aaa1d2b313d40d214f204ec957a3",
             {
                 input: {
                     source_image: fs.createReadStream(imageFile.path),
